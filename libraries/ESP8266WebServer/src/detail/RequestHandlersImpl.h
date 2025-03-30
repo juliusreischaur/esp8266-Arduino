@@ -6,6 +6,7 @@
 #include "mimetable.h"
 #include "WString.h"
 #include "Uri.h"
+#include <Base64.h>
 
 namespace esp8266webserver {
 
@@ -24,7 +25,8 @@ static String calcETag(FS &fs, const String &path) {
     calcMD5.getBytes(md5_buf);
     f.close();
     // create a minimal-length eTag using base64 byte[]->text encoding.
-    result = "\"" + base64::encode(md5_buf, 16, false) + "\"";
+    char encoded[24];
+    base64_encode(encoded, (char*)md5_buf, 16);
     return(result);
 } // calcETag
 

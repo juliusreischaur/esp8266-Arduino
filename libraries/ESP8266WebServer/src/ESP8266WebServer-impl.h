@@ -26,9 +26,9 @@
 #include "WiFiClient.h"
 #include "ESP8266WebServer.h"
 #include "FS.h"
-#include "base64.h"
 #include "detail/RequestHandlersImpl.h"
 #include <StreamDev.h>
+#include <Base64.h>
 
 static const char AUTHORIZATION_HEADER[] PROGMEM = "Authorization";
 static const char qop_auth[] PROGMEM = "qop=auth";
@@ -115,8 +115,10 @@ bool ESP8266WebServerTemplate<ServerType>::authenticate(const char * username, c
         return false;
       }
 
-      String encoded = base64::encode(raw, false);
-      if(!encoded.length()){
+      char encoded[64];
+      base64_encode(encoded, (char*)raw.c_str(), raw.length());
+      String encodedStr = String(encoded);
+      if(!encodedStr.length()){
         return false;
       }
       if(authReq.equalsConstantTime(encoded)) {
