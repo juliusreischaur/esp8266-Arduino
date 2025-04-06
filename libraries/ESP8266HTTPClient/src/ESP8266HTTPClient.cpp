@@ -27,7 +27,7 @@
 #include "ESP8266HTTPClient.h"
 #include <ESP8266WiFi.h>
 #include <StreamDev.h>
-#include <base64.h>
+#include <Base64.h>
 
 // per https://github.com/esp8266/Arduino/issues/8231
 // make sure HTTPClient can be utilized as a movable class member
@@ -156,10 +156,13 @@ bool HTTPClient::beginInternal(const String& __url, const char* expectedProtocol
     // get Authorization
     index = host.indexOf('@');
     if(index >= 0) {
-        // auth info
         String auth = host.substring(0, index);
-        host.remove(0, index + 1); // remove auth part including @
-        _base64Authorization = base64::encode(auth, false /* doNewLines */);
+        host.remove(0, index + 1);
+        int outputLength = base64_enc_len(auth.length());
+        char* encodedAuth = new char[outputLength + 1];
+        base64_encode(encodedAuth, const_cast<char*>(auth.c_str()), auth.length());
+        _base64Authorization = String(encodedAuth);
+        delete[] encodedAuth;
     }
 
     const String oldHost = _host;
@@ -271,13 +274,16 @@ void HTTPClient::setUserAgent(const String& userAgent)
  * @param user const char *
  * @param password const char *
  */
-void HTTPClient::setAuthorization(const char * user, const char * password)
-{
-    if(user && password) {
+void HTTPClient::setAuthorization(const char * user, const char * password) {
+    if (user && password) {
         String auth = user;
         auth += ':';
         auth += password;
-        _base64Authorization = base64::encode(auth, false /* doNewLines */);
+        int outputLength = base64_enc_len(auth.length());
+        char *output = new char[outputLength + 1];
+        base64_encode(output, const_cast<char*>(auth.c_str()), auth.length());
+        _base64Authorization = String(output);
+        delete[] output;
     }
 }
 
